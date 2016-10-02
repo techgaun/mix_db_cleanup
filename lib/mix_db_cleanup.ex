@@ -1,0 +1,2 @@
+defmodule MixDbCleanup do
+end
