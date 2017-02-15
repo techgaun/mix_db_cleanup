@@ -48,7 +48,7 @@ defmodule Mix.Tasks.Db.Cleanup do
 
     Enum.each repos, fn repo ->
       ensure_repo(repo, args)
-      {:ok, _pid} = ensure_started(repo, [])
+      {:ok, _pid, _} = ensure_started(repo, [])
       count = opts[:count]
       query =
         case count |> is_nil do
