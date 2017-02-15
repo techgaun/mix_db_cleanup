@@ -1,6 +1,6 @@
 # MixDbCleanup
 
-> Mix Task to perform cleanup of Database using ecto (1.x)
+> Mix Task to perform cleanup of Database using ecto 2.x
 
 ## Installation
 
@@ -19,10 +19,10 @@ The `db.cleanup` mix task can be used to cleanup the database table. The intende
 ```shell
 $ mix help db.cleanup
 
-                                 mix db.cleanup                                 
+                                 mix db.cleanup
 
 The db.cleanup task deletes old rows from a table. By default, it deletes
-data from devices_data that are older than 7 days.
+data from events that are older than 7 days.
 
 Examples
 

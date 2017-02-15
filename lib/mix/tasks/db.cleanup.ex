@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Db.Cleanup do
 
   @moduledoc """
   The db.cleanup task deletes old rows from a table.
-  By default, it deletes data from devices_data that are older than 7 days.
+  By default, it deletes data from events that are older than 7 days.
 
   ## Examples
 
@@ -23,7 +23,6 @@ defmodule Mix.Tasks.Db.Cleanup do
   @doc false
   def run(args) do
     repos = parse_repo(args)
-    ensure_repo(repos, args)
     {opts, _, _} = OptionParser.parse(args,
       switches: [table: :string, num: :integer, force: :boolean, count: :integer],
       aliases: [t: :table, n: :num, f: :force, c: :count]
@@ -39,11 +38,7 @@ defmodule Mix.Tasks.Db.Cleanup do
       end
     end
 
-    table =
-      case opts[:table] |> is_nil do
-        true -> "devices_data"
-        false -> opts[:table]
-      end
+    table = opts[:table] || "events"
 
     n =
       case opts[:num] |> is_nil do
@@ -53,7 +48,7 @@ defmodule Mix.Tasks.Db.Cleanup do
 
     Enum.each repos, fn repo ->
       ensure_repo(repo, args)
-      {:ok, _pid} = ensure_started(repo)
+      {:ok, _pid} = ensure_started(repo, [])
       count = opts[:count]
       query =
         case count |> is_nil do
