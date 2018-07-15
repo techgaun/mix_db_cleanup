@@ -23,17 +23,21 @@ defmodule Mix.Tasks.Db.Cleanup do
   @doc false
   def run(args) do
     repos = parse_repo(args)
-    {opts, _, _} = OptionParser.parse(args,
-      switches: [table: :string, num: :integer, force: :boolean, count: :integer],
-      aliases: [t: :table, n: :num, f: :force, c: :count]
+
+    {opts, _, _} =
+      OptionParser.parse(
+        args,
+        switches: [table: :string, num: :integer, force: :boolean, count: :integer],
+        aliases: [t: :table, n: :num, f: :force, c: :count]
       )
 
-    if Mix.env == :prod do
+    if Mix.env() == :prod do
       case opts[:force] do
         true ->
           nil
+
         _ ->
-          Mix.shell.info "You need to specify --force / -f for prod environment"
+          Mix.shell().info("You need to specify --force / -f for prod environment")
           System.halt(1)
       end
     end
@@ -46,33 +50,40 @@ defmodule Mix.Tasks.Db.Cleanup do
         false -> opts[:num]
       end
 
-    Enum.each repos, fn repo ->
+    Enum.each(repos, fn repo ->
       ensure_repo(repo, args)
       {:ok, _pid, _} = ensure_started(repo, [])
       count = opts[:count]
+
       query =
         case count |> is_nil do
           true ->
-            Mix.shell.info "Deleting rows from #{inspect table} older than #{inspect n} days..."
+            Mix.shell().info(
+              "Deleting rows from #{inspect(table)} older than #{inspect(n)} days..."
+            )
+
             by_date_query(table, n)
 
           _ ->
-            Mix.shell.info "Deleting first #{inspect count} data from #{inspect table}..."
+            Mix.shell().info("Deleting first #{inspect(count)} data from #{inspect(table)}...")
             n_data_query(table, count)
         end
 
       delete_data(repo, query)
-    end
+    end)
   end
 
   defp by_date_query(table, n) do
     n = n * 86_400
-    n_date = Ecto.DateTime.utc
-      |> Ecto.DateTime.to_erl
-      |> :calendar.datetime_to_gregorian_seconds
+
+    n_date =
+      Ecto.DateTime.utc()
+      |> Ecto.DateTime.to_erl()
+      |> :calendar.datetime_to_gregorian_seconds()
       |> Kernel.-(n)
-      |> :calendar.gregorian_seconds_to_datetime
-      |> Ecto.DateTime.from_erl
+      |> :calendar.gregorian_seconds_to_datetime()
+      |> Ecto.DateTime.from_erl()
+
     "DELETE FROM #{table} WHERE inserted_at < '#{n_date}'"
   end
 
@@ -82,9 +93,10 @@ defmodule Mix.Tasks.Db.Cleanup do
 
   defp delete_data(repo, query) do
     query = Ecto.Adapters.SQL.query(repo, query, [])
+
     case query do
-      {:ok, result} -> Mix.shell.info "Deleted #{result.num_rows} rows"
-      _ -> Mix.shell.info "An error occurred when trying to delete data"
+      {:ok, result} -> Mix.shell().info("Deleted #{result.num_rows} rows")
+      _ -> Mix.shell().info("An error occurred when trying to delete data")
     end
   end
 end
