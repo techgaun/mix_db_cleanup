@@ -52,24 +52,28 @@ defmodule Mix.Tasks.Db.Cleanup do
 
     Enum.each(repos, fn repo ->
       ensure_repo(repo, args)
-      {:ok, _pid, _} = ensure_started(repo, [])
-      count = opts[:count]
+      {:ok, _, _} = Ecto.Migrator.with_repo(
+        repo,
+        fn ->
+          count = opts[:count]
 
-      query =
-        case count |> is_nil do
-          true ->
-            Mix.shell().info(
-              "Deleting rows from #{inspect(table)} older than #{inspect(n)} days..."
-            )
+          query =
+            case count |> is_nil do
+              true ->
+                Mix.shell().info(
+                  "Deleting rows from #{inspect(table)} older than #{inspect(n)} days..."
+                )
 
-            by_date_query(table, n)
+                by_date_query(table, n)
 
-          _ ->
-            Mix.shell().info("Deleting first #{inspect(count)} data from #{inspect(table)}...")
-            n_data_query(table, count)
+              _ ->
+                Mix.shell().info("Deleting first #{inspect(count)} data from #{inspect(table)}...")
+                n_data_query(table, count)
+            end
+
+          delete_data(repo, query)
         end
-
-      delete_data(repo, query)
+      )
     end)
   end
 
@@ -77,12 +81,10 @@ defmodule Mix.Tasks.Db.Cleanup do
     n = n * 86_400
 
     n_date =
-      Ecto.DateTime.utc()
-      |> Ecto.DateTime.to_erl()
-      |> :calendar.datetime_to_gregorian_seconds()
+      DateTime.utc_now()
+      |> DateTime.to_unix(:second)
       |> Kernel.-(n)
-      |> :calendar.gregorian_seconds_to_datetime()
-      |> Ecto.DateTime.from_erl()
+      |> DateTime.from_unix!()
 
     "DELETE FROM #{table} WHERE inserted_at < '#{n_date}'"
   end

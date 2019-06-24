@@ -30,7 +30,8 @@ defmodule MixDbCleanup.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:ecto, "~> 2.0"}
+      {:ecto, "~> 3.0"},
+      {:ecto_sql, "~> 3.0"}
     ]
   end
 end
