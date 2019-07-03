@@ -54,7 +54,7 @@ defmodule Mix.Tasks.Db.Cleanup do
       ensure_repo(repo, args)
       {:ok, _, _} = Ecto.Migrator.with_repo(
         repo,
-        fn ->
+        fn repo ->
           count = opts[:count]
 
           query =
